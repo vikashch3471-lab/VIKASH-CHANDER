@@ -1,44 +1,60 @@
-
 name: Build AVY Android APK
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'AVY_Android_Enhanced_Source.zip'
+      - 'AVY_Full_Phone_Control_Package.zip'
       - '.github/workflows/build-avy.yml'
+
+permissions:
+  contents: read
+
+env:
+  ANDROID_PACKAGE: AVY_Full_Phone_Control_Package.zip
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
-
-      - name: Extract AVY source
-        run: unzip AVY_Android_Enhanced_Source.zip -d source
-
-      - name: Build APK
+      - name: Extract package and Android project
+        shell: bash
         run: |
-          cd source/AVY_Android_Starter/AVY_Android_Starter
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          set -euo pipefail
+          test -f "$ANDROID_PACKAGE"
+          mkdir -p package-unpacked android-source
+          unzip -q "$ANDROID_PACKAGE" -d package-unpacked
+          SOURCE_ZIP="$(find package-unpacked -type f -name 'AVY_Android_Enhanced_Source.zip' -print -quit)"
+          test -n "$SOURCE_ZIP"
+          unzip -q "$SOURCE_ZIP" -d android-source
+          PROJECT_DIR="$GITHUB_WORKSPACE/android-source/AVY_Android_Starter"
+          test -f "$PROJECT_DIR/gradlew"
+          test -f "$PROJECT_DIR/settings.gradle"
+          test -f "$PROJECT_DIR/app/build.gradle"
+          test -f "$PROJECT_DIR/app/src/main/java/com/avy/assistant/GeminiBrain.kt"
+          chmod +x "$PROJECT_DIR/gradlew"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
-      - name: Upload APK
+      - name: Build debug APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$PROJECT_DIR"
+          ./gradlew --no-daemon --stacktrace assembleDebug
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AVY-Android-APK
-          path: source/AVY_Android_Starter/AVY_Android_Starter/app/build/outputs/apk/debug/*.apk
+          name: AVY-Full-Phone-Control-debug-apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
