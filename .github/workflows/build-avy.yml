@@ -1,0 +1,41 @@
+
+name: Build AVY Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AVY_Android_Enhanced_Source.zip'
+      - '.github/workflows/build-avy.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Extract AVY source
+        run: unzip AVY_Android_Enhanced_Source.zip -d source
+
+      - name: Build APK
+        run: |
+          cd source/AVY_Android_Starter/AVY_Android_Starter
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AVY-Android-APK
+          path: source/AVY_Android_Starter/AVY_Android_Starter/app/build/outputs/apk/debug/*.apk
