@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'AVY_Gemini_Brain_Source.zip'
+      - AVY_Gemini_Brain_Source_NEW.zip
       - '.github/workflows/build-avy.yml'
 
 permissions:
@@ -27,9 +27,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -f AVY_Gemini_Brain_Source.zip
+          test -f AVY_Gemini_Brain_Source_NEW.zip
           mkdir -p android-source
-          unzip -q AVY_Gemini_Brain_Source.zip -d android-source
+          unzip -q  -AVY_Gemini_Brain_Source_NEW.zip android-source
           PROJECT_DIR="$GITHUB_WORKSPACE/android-source/AVY_Android_Starter"
           test -f "$PROJECT_DIR/gradlew"
           test -f "$PROJECT_DIR/settings.gradle"
