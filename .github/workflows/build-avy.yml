@@ -1,10 +1,11 @@
+
 name: Build AVY Complete Android APK
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'AVY_Complete_Phone_Control_Gemini_v2.zip'
+      - 'AVY_Accessibility_Minimal_Source.zip'
       - '.github/workflows/build-avy.yml'
 
 permissions:
@@ -13,6 +14,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,17 +26,19 @@ jobs:
           java-version: '17'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@v3
+
       - name: Verify and extract AVY source
         shell: bash
         run: |
           set -euo pipefail
-          test -f AVY_Complete_Phone_Control_Gemini_v2.zip
-          unzip -q AVY_Complete_Phone_Control_Gemini_v2.zip -d extracted
+          test -f AVY_Accessibility_Minimal_Source.zip
+          mkdir -p extracted
+          unzip -q AVY_Accessibility_Minimal_Source.zip -d extracted
           PROJECT_DIR="$GITHUB_WORKSPACE/extracted/AVY_Android_Starter"
           test -f "$PROJECT_DIR/settings.gradle"
-          test -f "$PROJECT_DIR/gradlew"
           test -f "$PROJECT_DIR/app/build.gradle"
+          test -f "$PROJECT_DIR/gradlew"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           chmod +x "$PROJECT_DIR/gradlew"
 
@@ -48,7 +52,7 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: AVY-Complete-debug-apk
+          name: AVY-Accessibility-Minimal-debug-apk
           path: extracted/AVY_Android_Starter/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
