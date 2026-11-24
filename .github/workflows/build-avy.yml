@@ -30,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f AVY_Complete_Phone_Control_Gemini_v2.zip
-          unzip -q AVY_Complete_Phone_Control_Gemini_v2.zip -d extracted 
+          unzip -q AVY_Complete_Phone_Control_Gemini_v2.zip -d extracted
           PROJECT_DIR="$GITHUB_WORKSPACE/extracted/AVY_Android_Starter"
           test -f "$PROJECT_DIR/settings.gradle"
           test -f "$PROJECT_DIR/gradlew"
