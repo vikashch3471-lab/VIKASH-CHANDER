@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'AVY_Complete_Phone_Control_Gemini.zip'
+      - 'AVY_Complete_Phone_Control_Gemini_v2.zip'
       - '.github/workflows/build-avy.yml'
 
 permissions:
