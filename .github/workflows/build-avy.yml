@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - 'AVY_Complete_Modular_Design_Source_v1*.zip'
-      - '.github/workflows/build-avy.yml'
-
+       - 'AVY_Complete_Modular_Design_Source_v1*.zip' 
+       - '.github/workflows/build-avy.yml'
+                  
 permissions:
   contents: read
 
