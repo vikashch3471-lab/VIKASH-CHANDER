@@ -1,11 +1,10 @@
-
-name: Build AVY Complete Android APK
+name: Build AVY v0.2.0 APK
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'AVY_Accessibility_Minimal_Source.zip'
+      - 'AVY_Complete_Modular_Design_Source_v1*.zip'
       - '.github/workflows/build-avy.yml'
 
 permissions:
@@ -14,7 +13,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,31 +26,26 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
-      - name: Verify and extract AVY source
-        shell: bash
+      - name: Extract AVY source
         run: |
-          set -euo pipefail
-          test -f AVY_Accessibility_Minimal_Source.zip
-          mkdir -p extracted
-          unzip -q AVY_Accessibility_Minimal_Source.zip -d extracted
-          PROJECT_DIR="$GITHUB_WORKSPACE/extracted/AVY_Android_Starter"
-          test -f "$PROJECT_DIR/settings.gradle"
-          test -f "$PROJECT_DIR/app/build.gradle"
-          test -f "$PROJECT_DIR/gradlew"
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          chmod +x "$PROJECT_DIR/gradlew"
+          ZIP_FILE=$(find . -maxdepth 1 -type f -name 'AVY_Complete_Modular_Design_Source_v1*.zip' | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo 'New AVY source ZIP was not found.'
+            exit 1
+          fi
+          mkdir -p source
+          unzip -q "$ZIP_FILE" -d source
+          test -f source/AVY_Android_Starter/gradlew
 
       - name: Build debug APK
-        shell: bash
+        working-directory: source/AVY_Android_Starter
         run: |
-          set -euo pipefail
-          cd "$PROJECT_DIR"
-          ./gradlew --no-daemon --stacktrace assembleDebug
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
 
-      - name: Upload debug APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AVY-Accessibility-Minimal-debug-apk
-          path: extracted/AVY_Android_Starter/app/build/outputs/apk/debug/app-debug.apk
+          name: AVY-v0.2.0-debug-apk
+          path: source/AVY_Android_Starter/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          retention-days: 14
