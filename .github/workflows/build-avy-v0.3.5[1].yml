@@ -1,0 +1,47 @@
+name: Build AVY v0.3.5 APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**/*.kt'
+      - '**/*.gradle'
+      - '**/*.xml'
+      - 'gradle/**'
+      - '.github/workflows/build-avy.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+      - name: Validate project files
+        run: |
+          test -f gradlew
+          test -f gradle/wrapper/gradle-wrapper.jar
+          test -f app/src/main/AndroidManifest.xml
+          test -f app/src/main/java/com/avy/assistant/MainActivity.kt
+          test -f app/src/main/java/com/avy/assistant/AvyAccessibilityService.kt
+      - name: Build debug APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace clean assembleDebug
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AVY-v0.3.5-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
