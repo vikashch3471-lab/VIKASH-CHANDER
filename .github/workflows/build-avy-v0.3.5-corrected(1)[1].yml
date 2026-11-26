@@ -1,0 +1,55 @@
+name: Build AVY v0.3.5 APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'AVY_v0.3.5_FINAL_SOURCE*.zip'
+      - '.github/workflows/build-avy-v0.3.5-corrected.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Extract AVY source ZIP
+        run: |
+          ZIP_FILE=$(find . -maxdepth 1 -type f -name 'AVY_v0.3.5_FINAL_SOURCE*.zip' -print -quit)
+          if [ -z "$ZIP_FILE" ]; then
+            echo 'AVY v0.3.5 source ZIP not found in repository root.'
+            exit 1
+          fi
+          mkdir -p source
+          unzip -q "$ZIP_FILE" -d source
+          test -f source/AVY_Android_Starter/gradlew
+          test -f source/AVY_Android_Starter/gradle/wrapper/gradle-wrapper.jar
+          test -f source/AVY_Android_Starter/app/src/main/AndroidManifest.xml
+
+      - name: Build debug APK
+        working-directory: source/AVY_Android_Starter
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace clean assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AVY-v0.3.5-debug-apk
+          path: source/AVY_Android_Starter/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
